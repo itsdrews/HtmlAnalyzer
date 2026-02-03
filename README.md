@@ -1,57 +1,52 @@
 EASTER_EGG_URLS
 
-HTML Analyzer - Axur Internship Challenge
-Este projeto é uma ferramenta de linha de comando desenvolvida em Java 17 para analisar estruturas HTML a partir de uma URL. O objetivo principal é identificar e retornar o conteúdo textual localizado no nível mais profundo da árvore do documento.
+# HTML Analyzer - Axur Internship Challenge
 
-🚀 Solução Técnica
-A solução foi construída utilizando apenas bibliotecas nativas do JDK, respeitando a restrição de não utilizar parsers de XML/HTML externos ou nativos (como javax.xml).
+Este projeto é uma ferramenta de linha de comando desenvolvida em **Java 17** projetada para analisar a estrutura de documentos HTML a partir de uma URL e extrair o texto contido no nível mais profundo da estrutura.
 
-1. Detecção de Formação (Malformed HTML)
-   Para garantir que o HTML seja válido e garantir os pontos bônus, foi implementada uma validação sintática baseada em uma estrutura de dados de Pilha (Stack).
+## 🚀 Solução Técnica
 
-Tags de Abertura: Sempre que o analisador encontra uma tag de abertura, ela é empilhada.
+A solução foi implementada utilizando estritamente as classes nativas do JDK, sem o uso de bibliotecas de terceiros ou pacotes de manipulação de XML/DOM, conforme as restrições técnicas do desafio.
 
-Tags de Fechamento: Ao encontrar uma tag de fechamento, o programa verifica se a pilha está vazia ou se o topo da pilha corresponde à tag que está sendo fechada.
+### 1. Detecção de Formação (Malformed HTML)
 
-Consistência Final: Se ao final da leitura a pilha não estiver vazia (tags abertas sem fechamento) ou se ocorrer um erro de correspondência durante o processo, o programa interrompe a execução e retorna malformed HTML.
+A validação de integridade do documento utiliza uma **Pilha (Stack)** de Strings para garantir a correta abertura e fechamento das tags:
 
-2. Busca em Profundidade (DFS)
-   O algoritmo utiliza o conceito de Busca em Profundidade (Depth-First Search) de forma iterativa.
+- **Empilhamento:** Ao identificar uma tag de abertura (ex: `<div>`), o nome da tag é adicionado ao topo da pilha.
+- **Desempilhamento e Comparação:** Ao encontrar uma tag de fechamento (ex: `</div>`), o programa remove o elemento do topo da pilha e verifica se ele corresponde à tag atual.
+- **Critérios de Erro:** O HTML é considerado `malformed HTML` se:
+  1. Uma tag de fechamento for encontrada com a pilha vazia.
+  2. A tag de fechamento não corresponder ao topo da pilha.
+  3. Ao final do processamento, a pilha não estiver vazia (tags abertas sem fechamento).
 
-A "profundidade" de qualquer trecho de texto é determinada pelo tamanho atual da Stack no momento em que a linha de texto é lida.
+### 2. Algoritmo de Busca em Profundidade (DFS)
 
-Como o HTML é processado linearmente (linha a linha), a pilha simula a descida nos ramos da árvore.
+Embora o processamento do arquivo ocorra de forma linear (linha a linha), a lógica implementada equivale a uma **Busca em Profundidade (DFS)**:
 
-Lógica de Seleção: O programa armazena o texto e sua profundidade. Se encontrar um novo texto com profundidade estritamente maior (currentDepth > maxDepth), ele substitui o anterior. Isso garante que, em caso de empate na profundidade máxima, o primeiro trecho encontrado seja o preservado, conforme exigido.
+- A profundidade de cada linha é definida pelo estado atual da pilha (`stack.size()`).
+- **Lógica de Seleção:** O algoritmo mantém o controle da profundidade máxima encontrada (`maxDepth`).
+- **Regra de Desempate:** Foi utilizada a condição `currentDepth > maxDepth`. Isso garante que apenas o primeiro trecho encontrado na profundidade máxima seja retornado, ignorando ocorrências subsequentes no mesmo nível.
 
-3. Testes de Múltiplos Exemplos
-   Para validar a solução, foi utilizado um script de automação (Fuzzer) em Python para iterar sobre uma lista de parâmetros (IDs de 1 a 35).
+### 3. Testes e Validação
 
-O script monta URLs dinâmicas: http://hiring.axreng.com/internship/example{id}.html.
+Para garantir a robustez da solução, foi desenvolvido um script de **fuzzing** em Python que automatizou o teste de múltiplos cenários:
 
-Os resultados de cada execução são capturados e consolidados em um arquivo .txt para conferência em massa.
+- **Automação:** Teste sequencial dos exemplos de 1 a 35 fornecidos pelo servidor de testes da Axur.
+- **Casos de Borda:** Validação de URLs inexistentes (retornando `URL connection error`) e estruturas propositalmente malformadas.
+- **Encoding:** A solução utiliza `StandardCharsets.UTF_8` tanto na captura do HTTP quanto no processamento da String, garantindo que caracteres especiais e acentuações sejam preservados corretamente.
 
-Este método permitiu validar o comportamento do analisador diante de casos de sucesso, páginas malformadas e erros de conexão (como páginas inexistentes).
+## 🛠️ Instruções de Uso
 
-🛠️ Como Executar
-Pré-requisitos
-JDK 17 instalado e configurado no PATH.
+### Compilação
 
-Compilação
-No diretório raiz do projeto, execute:
+No diretório raiz onde se encontra o arquivo `.java`:
 
-Bash
+```bash
 javac HtmlAnalyzer.java
-Execução
-Para analisar uma URL específica:
+```
 
-Bash
-java HtmlAnalyzer http://hiring.axreng.com/internship/example1.html
-📋 Especificações de Saída
-Sucesso: Retorna apenas o texto do nível mais profundo.
+Fornecer URL como argumento após a compilação:
 
-HTML Inválido: Retorna malformed HTML.
-
-Erro de Rede: Retorna URL connection error.
-
-Este projeto foi desenvolvido como parte do processo de seleção para o programa de estágio da Axur.
+```bash
+java HtmlAnalyzer [URL]
+```
