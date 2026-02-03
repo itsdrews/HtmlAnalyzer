@@ -1,1 +1,5 @@
 *.class
+__pycache__/
+*.py[cod]
+*.txt
+*.py
