@@ -2,51 +2,31 @@ EASTER_EGG_URLS
 
 # HTML Analyzer - Axur Internship Challenge
 
-Este projeto é uma ferramenta de linha de comando desenvolvida em **Java 17** projetada para analisar a estrutura de documentos HTML a partir de uma URL e extrair o texto contido no nível mais profundo da estrutura.
+Ferramenta de linha de comando desenvolvida em **Java 17** para analisar a profundidade de estruturas HTML e extrair conteúdo textual, conforme especificações do teste técnico.
 
-## 🚀 Solução Técnica
+## 🚀 Destaques da Solução
 
-A solução foi implementada utilizando estritamente as classes nativas do JDK, sem o uso de bibliotecas de terceiros ou pacotes de manipulação de XML/DOM, conforme as restrições técnicas do desafio.
+O projeto foi implementado utilizando estritamente classes nativas do JDK (`java.base`), sem bibliotecas externas ou parsers de DOM/XML, focando em performance e baixo overhead.
 
-### 1. Detecção de Formação (Malformed HTML)
+### 1. Validação de HTML (Bônus)
+A solução implementa a funcionalidade opcional de detecção de HTML malformado utilizando uma **Pilha (Stack)**:
+- Garante o balanceamento correto entre tags de abertura e fechamento.
+- Identifica erros como: tags cruzadas, fechamento sem abertura prévia e tags residuais na pilha.
+- Retorna `malformed HTML` priorizando a validação estrutural.
 
-A validação de integridade do documento utiliza uma **Pilha (Stack)** de Strings para garantir a correta abertura e fechamento das tags:
+### 2. Lógica de Profundidade
+O algoritmo processa o arquivo de forma linear (Stream/Scanner), mantendo o estado da profundidade atual:
+- **Critério:** Se `currentDepth > maxDepth`, o conteúdo é capturado.
+- **Desempate:** A utilização do operador estrito (`>`) assegura que, em caso de empate na profundidade máxima, apenas a **primeira ocorrência** seja preservada, conforme requisito funcional.
 
-- **Empilhamento:** Ao identificar uma tag de abertura (ex: `<div>`), o nome da tag é adicionado ao topo da pilha.
-- **Desempilhamento e Comparação:** Ao encontrar uma tag de fechamento (ex: `</div>`), o programa remove o elemento do topo da pilha e verifica se ele corresponde à tag atual.
-- **Critérios de Erro:** O HTML é considerado `malformed HTML` se:
-  1. Uma tag de fechamento for encontrada com a pilha vazia.
-  2. A tag de fechamento não corresponder ao topo da pilha.
-  3. Ao final do processamento, a pilha não estiver vazia (tags abertas sem fechamento).
+### 3. Robustez e Encoding
+- **Compatibilidade:** Todo o I/O utiliza `StandardCharsets.UTF_8` para garantir a correta manipulação de acentuação e caracteres especiais.
+- **Tratamento de Erros:** Captura falhas de conexão HTTP retornando a mensagem padronizada `URL connection error`.
 
-### 2. Algoritmo de Busca em Profundidade (DFS)
+## 🛠️ Instruções de Compilação e Execução
 
-Embora o processamento do arquivo ocorra de forma linear (linha a linha), a lógica implementada equivale a uma **Busca em Profundidade (DFS)**:
+Pré-requisito: JDK 17 instalado.
 
-- A profundidade de cada linha é definida pelo estado atual da pilha (`stack.size()`).
-- **Lógica de Seleção:** O algoritmo mantém o controle da profundidade máxima encontrada (`maxDepth`).
-- **Regra de Desempate:** Foi utilizada a condição `currentDepth > maxDepth`. Isso garante que apenas o primeiro trecho encontrado na profundidade máxima seja retornado, ignorando ocorrências subsequentes no mesmo nível.
-
-### 3. Testes e Validação
-
-Para garantir a robustez da solução, foi desenvolvido um script de **fuzzing** em Python que automatizou o teste de múltiplos cenários:
-
-- **Automação:** Teste sequencial dos exemplos de 1 a 6.
-- **Casos de Borda:** Validação de URLs inexistentes (retornando `URL connection error`) e estruturas propositalmente malformadas.
-- **Encoding:** A solução utiliza `StandardCharsets.UTF_8`  garantindo que caracteres especiais e acentuações sejam preservados corretamente.
-
-## 🛠️ Instruções de Uso
-
-### Compilação
-
-No diretório raiz onde se encontra o arquivo `.java`:
-
+**1. Compilar:**
 ```bash
 javac HtmlAnalyzer.java
-```
-
-Fornecer URL como argumento após a compilação:
-
-```bash
-java HtmlAnalyzer [URL]
-```

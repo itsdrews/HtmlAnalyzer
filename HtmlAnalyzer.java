@@ -1,3 +1,4 @@
+import java.io.PrintStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -10,8 +11,8 @@ import java.util.Stack;
 public class HtmlAnalyzer {
 
     public static void main(String[] args) {
+        // Se nenhum argumento for passado, encerra silenciosamente
         if (args.length == 0) {
-            // a falta de argumento impede o inicio.
             return;
         }
 
@@ -19,14 +20,16 @@ public class HtmlAnalyzer {
             String html = fetchHtml(args[0]);
             analyze(html);
         } catch (Exception e) {
+            // Requisito 5c: Em caso de falha de conexão
             System.out.println("URL connection error");
         }
     }
 
-    // Classe p/ extrair HTML da URL
+    // Método para buscar o HTML usando HttpClient
     private static String fetchHtml(String url) throws Exception {
         HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
+                .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -34,20 +37,20 @@ public class HtmlAnalyzer {
                 .GET()
                 .build();
 
+        // Garante que a resposta seja interpretada como UTF-8
         HttpResponse<String> response = client.send(request,
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
         if (response.statusCode() != 200) {
-            throw new RuntimeException();
+            throw new RuntimeException("HTTP Error: " + response.statusCode());
         }
 
         return response.body();
     }
 
+    // Método principal de análise lógica
     private static void analyze(String html) {
-        // Utilizando scanner para ler linha a linha
         Scanner scanner = new Scanner(html);
-        // Estrutura de dados pronta do Java: Stack (Pilha)
         Stack<String> stack = new Stack<>();
 
         String deepestContent = null;
@@ -61,34 +64,45 @@ public class HtmlAnalyzer {
                 continue;
             }
 
+            // Verifica se é tag de fechamento (</tag>)
             if (line.startsWith("</")) {
-                // Tag de fechamento
-                String tagName = line.substring(2, line.length() - 1); // Pega a substring dentro da Tag
-                if (stack.isEmpty() || !stack.pop().equals(tagName)) {
-                    malformed = true; // Se as tags forem diferentes o html esta mal formado
+                String tagName = line.substring(2, line.length() - 1);
+                
+                // Validação de HTML Malformado
+                if (stack.isEmpty() || !stack.peek().equals(tagName)) {
+                    malformed = true;
                     break;
                 }
+                stack.pop();
+            
+            // Verifica se é tag de abertura <tag>
             } else if (line.startsWith("<")) {
-                // Tag de abertura
                 String tagName = line.substring(1, line.length() - 1);
                 stack.push(tagName);
+            
+            // Se não é tag, é texto
             } else {
-                // Trecho de texto
                 int currentDepth = stack.size();
-                // Lógica para retornar o "primeiro maior"
+                // Apenas atualiza se for ESTRITAMENTE maior (pega o primeiro encontrado)
                 if (currentDepth > maxDepth) {
                     maxDepth = currentDepth;
                     deepestContent = line;
                 }
             }
         }
-
+        
         scanner.close();
 
+        // Configura saída para UTF-8 explícito para evitar problemas de acentuação no console
+        PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+
+        // HTML Malformado (tags desencontradas ou sobrando na pilha)
         if (malformed || !stack.isEmpty()) {
-            System.out.println("malformed HTML");
-        } else if (deepestContent != null) {
-            System.out.println(deepestContent);
+            out.println("malformed HTML");
+        } 
+        // Exibe o trecho mais profundo
+        else if (deepestContent != null) {
+            out.println(deepestContent);
         }
     }
 }
