@@ -31,9 +31,9 @@ Embora o processamento do arquivo ocorra de forma linear (linha a linha), a lóg
 
 Para garantir a robustez da solução, foi desenvolvido um script de **fuzzing** em Python que automatizou o teste de múltiplos cenários:
 
-- **Automação:** Teste sequencial dos exemplos de 1 a 35 fornecidos pelo servidor de testes da Axur.
+- **Automação:** Teste sequencial dos exemplos de 1 a 6.
 - **Casos de Borda:** Validação de URLs inexistentes (retornando `URL connection error`) e estruturas propositalmente malformadas.
-- **Encoding:** A solução utiliza `StandardCharsets.UTF_8` tanto na captura do HTTP quanto no processamento da String, garantindo que caracteres especiais e acentuações sejam preservados corretamente.
+- **Encoding:** A solução utiliza `StandardCharsets.UTF_8`  garantindo que caracteres especiais e acentuações sejam preservados corretamente.
 
 ## 🛠️ Instruções de Uso
 
